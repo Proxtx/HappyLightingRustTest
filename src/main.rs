@@ -36,9 +36,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let chars = light.characteristics();
     let cmd_char = chars.iter().find(|c| c.uuid == LIGHT_CHARACTERISTIC_UUID).unwrap();
 
-    let color_cmd = vec![0x56, 0xFF, 0x00, 0x00, 0x00, 0xF0, 0xAA];
-    light.write(&cmd_char, &color_cmd, WriteType::WithoutResponse).await?;
-    
+    let mut rng = thread_rng();
+    for _ in 0..50 {
+        let color_cmd = vec![0x56, rng.gen(), rng.gen(), rng.gen(), 0x00, 0xF0, 0xAA];
+        light.write(&cmd_char, &color_cmd, WriteType::WithoutResponse).await?;
+        time::sleep(Duration::from_millis(200)).await;
+    }
     Ok(())
 }
 
