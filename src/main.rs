@@ -7,7 +7,7 @@ use std::time::Duration;
 use tokio::time;
 use uuid::Uuid;
 
-const LIGHT_CHARACTERISTIC_UUID: Uuid = uuid_from_u16(0xFFE9);
+const LIGHT_CHARACTERISTIC_UUID: Uuid = uuid_from_u16(0xFFD9);
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     central.start_scan(ScanFilter::default()).await?;
     // instead of waiting, you can use central.events() to get a stream which will
     // notify you of new devices, for an example of that see examples/event_driven_discovery.rs
-    time::sleep(Duration::from_secs(2)).await;
+    time::sleep(Duration::from_secs(20)).await;
 
     // find the device we're interested in
     let light = find_light(&central).await.unwrap();
@@ -36,13 +36,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let chars = light.characteristics();
     let cmd_char = chars.iter().find(|c| c.uuid == LIGHT_CHARACTERISTIC_UUID).unwrap();
 
-    // dance party
-    let mut rng = thread_rng();
-    for _ in 0..20 {
-        let color_cmd = vec![0x56, rng.gen(), rng.gen(), rng.gen(), 0x00, 0xF0, 0xAA];
-        light.write(&cmd_char, &color_cmd, WriteType::WithoutResponse).await?;
-        time::sleep(Duration::from_millis(200)).await;
-    }
+    let color_cmd = vec![0x56, 0xFF, 0x00, 0x00, 0x00, 0xF0, 0xAA];
+    light.write(&cmd_char, &color_cmd, WriteType::WithoutResponse).await?;
+    
     Ok(())
 }
 
@@ -55,7 +51,7 @@ async fn find_light(central: &Adapter) -> Option<Peripheral> {
             .unwrap()
             .local_name
             .iter()
-            .any(|name| {println!("{}", name); return name.contains("Minger_H6001_630C")})
+            .any(|name| {println!("{}", name); return name.contains("Dream~")})
         {
             return Some(p);
         }
